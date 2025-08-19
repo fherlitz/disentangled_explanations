@@ -57,7 +57,6 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--block", choices=["block_1", "block_2", "block_3", "block_4"], default="block_1")
     parser.add_argument("--n_clusters", type=int, default=3)
-    parser.add_argument( "--output_dir", type=str, default=None,)
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -109,7 +108,7 @@ def main():
     # Save everything
 
     # Determine target output directory
-    out_dir = Path(args.output_dir) if args.output_dir else Path("outputs/neuron_stats") / f"{selected_block}_k{n_clusters}"
+    out_dir = Path("outputs/neuron_stats") / f"{selected_block}_k{n_clusters}"
     # Ensure directory exists
     out_dir.mkdir(parents=True, exist_ok=True)
 

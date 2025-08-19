@@ -78,8 +78,8 @@ def main():
     base_model = models.densenet121(pretrained=True).to(device).eval()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cluster_idx", type=int, default=0, help="Index of the cluster to filter")
-    parser.add_argument("--metric", choices=["patch", "pixel"], default="patch", help="Evaluation metric granularity")
+    parser.add_argument("--cluster_idx", type=int, default=0) # index of the cluster to filter
+    parser.add_argument("--metric", choices=["patch", "pixel"], default="patch")
     parser.add_argument("--images", type=int, default=10000)
     parser.add_argument("--stats_dir", type=str, default="outputs/neuron_stats/block_1_k3")
     parser.add_argument("--output_dir", type=str, default="outputs/filtered_block_1_cluster_0_k3")

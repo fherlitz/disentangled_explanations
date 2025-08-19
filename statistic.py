@@ -3,14 +3,9 @@ import json
 import numpy as np
 import torch
 import torchvision.models as models
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
 from tqdm import tqdm
-from scipy import stats
 from scipy.stats import ttest_rel
-import pandas as pd
-from matplotlib.gridspec import GridSpec
 import warnings
 import pickle
 import gc
@@ -70,13 +65,13 @@ def process_in_batches(base_model, filt_model, dataloader, baseline_dir, filtere
             baseline_scores = compute_faithfulness_batch(
                 base_model, dataloader, baseline_dir, method, indices, drop_fraction
             )
-            results[method]['baseline'].extend(baseline_scores)
+            results[method]['baseline'].extend(baseline_scores) # Store baseline scores
             
             # Compute filtered faithfulness
             filtered_scores = compute_faithfulness_batch(
                 filt_model, dataloader, filtered_dir, method, indices, drop_fraction
             )
-            results[method]['filtered'].extend(filtered_scores)
+            results[method]['filtered'].extend(filtered_scores) # Store filtered scores
         
         # Clear memory
         gc.collect()
@@ -120,7 +115,7 @@ def main():
     parser.add_argument('--filtered_dir', type=str, default='outputs/patch_wise_evaluation/filtered')
     parser.add_argument('--num_images', type=int, default=50000)
     parser.add_argument('--batch_size', type=int, default=200)
-    parser.add_argument('--output_dir', type=str, default='outputs/statistics_PATCH_WISE') ##################
+    parser.add_argument('--output_dir', type=str, default='outputs/statistical_analysis_patch_wise')
     parser.add_argument('--drop_fraction', type=float, default=0.1)
     parser.add_argument('--stats_dir', type=str, default='outputs/neuron_stats/block_1_k3')
     args = parser.parse_args()
