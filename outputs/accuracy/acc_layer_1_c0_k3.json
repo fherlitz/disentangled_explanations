@@ -1,0 +1,8 @@
+{
+  "layer": "layer_1",
+  "cluster": 0,
+  "top1_baseline": 0.74306,
+  "top5_baseline": 0.91784,
+  "top1_filtered": 0.74306,
+  "top5_filtered": 0.91784
+}

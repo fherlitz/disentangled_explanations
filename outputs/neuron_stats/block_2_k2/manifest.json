@@ -1,0 +1,8 @@
+{
+  "selected_block": "block_2",
+  "n_clusters": 2,
+  "num_neurons": 512,
+  "stats_files": {
+    "block_2": "stats_block_2.npz"
+  }
+}

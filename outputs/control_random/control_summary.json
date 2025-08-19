@@ -1,0 +1,14 @@
+{
+  "block": "block_1",
+  "total_neurons": 256,
+  "filtered_neurons": 214,
+  "kept_neurons": 42,
+  "filtered_percentage": 83.59375,
+  "random_seed": 42,
+  "n_random": 214,
+  "filtered_by_cluster": {
+    "0": 178,
+    "2": 24,
+    "1": 12
+  }
+}

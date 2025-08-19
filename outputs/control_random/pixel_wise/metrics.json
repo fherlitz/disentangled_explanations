@@ -1,0 +1,20 @@
+{
+  "ig": {
+    "sparsity_mean": 0.5069508995004252,
+    "sparsity_std": 0.04151478090300916,
+    "faithfulness_mean": 0.39940187847246306,
+    "faithfulness_std": 0.32843050386308764
+  },
+  "saliency": {
+    "sparsity_mean": 0.43207147507440474,
+    "sparsity_std": 0.03072484704754765,
+    "faithfulness_mean": 0.32143811806043004,
+    "faithfulness_std": 0.3106496891847035
+  },
+  "experiment_type": "control_random",
+  "block_filtered": "block_1",
+  "neurons_filtered": 214,
+  "neurons_total": 256,
+  "random_seed": 42,
+  "metric_type": "pixel"
+}

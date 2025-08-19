@@ -302,10 +302,9 @@ def visualize_cluster_analysis(
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--img_idx", type=int, default=1050)
-    parser.add_argument("--num_images", type=int, default=1) # 1 for img_idx, >1 for stride sampling
+    parser.add_argument("--num_images", type=int, default=20) # 1 for img_idx, >1 for stride sampling
     parser.add_argument("--stats_dir", type=str, default="outputs/neuron_stats/block_1_k3")
     parser.add_argument("--method", choices=["ig", "saliency"], default="ig")
-    parser.add_argument("--save_dir", type=str, default="outputs/cluster_analysis")
     args = parser.parse_args()
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -337,7 +336,7 @@ def main():
     print(f"Loaded {len(idx2name)} ImageNet class names")
     
     # Create output directory
-    save_dir = Path(args.save_dir)
+    save_dir = Path("outputs/decomposition_analysis")
     save_dir.mkdir(parents=True, exist_ok=True)
     
     # Analyze multiple images
