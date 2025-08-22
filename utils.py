@@ -128,10 +128,14 @@ def probability_drop_pixel_wise(
     img: torch.Tensor,
     attr: np.ndarray,
     drop_fraction: float = 0.1,
+    true_label: Optional[int] = None,
 ) -> float:
     with torch.no_grad():
         logits = model(img.unsqueeze(0))
-        true_class = logits.argmax(1).item()
+        if true_label is not None:
+            true_class = true_label
+        else:
+            true_class = logits.argmax(1).item()
         prob_orig = torch.softmax(logits, dim=1)[0, true_class].item()
 
     # collapse channel dimension so we rank by spatial importance
@@ -174,12 +178,16 @@ def probability_drop_patch_wise(
     attr: np.ndarray,
     drop_fraction: float = 0.1,
     grid_size: int = 14,
+    true_label: Optional[int] = None,
 ) -> float:
 
     # 1. Original probability
     with torch.no_grad():
         logits = model(img.unsqueeze(0))
-        true_class = logits.argmax(1).item()
+        if true_label is not None:
+            true_class = true_label
+        else:
+            true_class = logits.argmax(1).item()
         prob_orig = torch.softmax(logits, dim=1)[0, true_class].item()
 
     # 2. Prepare attribution map

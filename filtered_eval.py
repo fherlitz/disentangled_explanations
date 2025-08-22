@@ -168,7 +168,7 @@ def main():
             attr = np.load(out_attr_dir / f"{method}_{idx}.npy")
             sparsity_scores[method].append(sparsity_fn(attr))
             faithfulness_scores[method].append(
-                faith_fn(filt_model, img, attr, drop_fraction=0.1)
+                faith_fn(filt_model, img, attr, drop_fraction=0.1, true_label=labels_flat[idx])
             )
 
     # ------------------------------------------------------------------

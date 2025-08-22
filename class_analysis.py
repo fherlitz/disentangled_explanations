@@ -199,7 +199,7 @@ def main():
                 )
                 faithfulness_scores_filtered[method_name].append(
                     probability_drop_pixel_wise(
-                        filt_model, img, attr_filtered, drop_fraction=0.1
+                        filt_model, img, attr_filtered, drop_fraction=0.1, true_label=tgt_label
                     )
                 )
 
@@ -215,7 +215,7 @@ def main():
                     np.save(base_attr_path, attr_base)
                 baseline_faithfulness_scores[method_name].append(
                     probability_drop_pixel_wise(
-                        base_model, img, attr_base, drop_fraction=0.1
+                        base_model, img, attr_base, drop_fraction=0.1, true_label=tgt_label
                     )
                 )
                 baseline_sparsity_scores[method_name].append(

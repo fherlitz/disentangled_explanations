@@ -31,11 +31,11 @@ def compute_faithfulness_batch(model, dataloader, attr_dir, method, indices, dro
         attr = np.load(attr_path)
         
         # Get image from dataset
-        img, _ = dataloader.dataset[idx]
+        img, true_label = dataloader.dataset[idx]
         img = img.to(device)
         
         # Compute faithfulness
-        faith = probability_drop_patch_wise(model, img, attr, drop_fraction=drop_fraction)
+        faith = probability_drop_patch_wise(model, img, attr, drop_fraction=drop_fraction, true_label=true_label)
         faithfulness_scores.append(faith)
         
         # Clear GPU memory periodically
