@@ -29,7 +29,7 @@ def attribution_overlay(img_t: torch.Tensor, attr: torch.Tensor) -> np.ndarray:
     img = (img_t * STD.to(img_t.device) + MEAN.to(img_t.device)).clamp(0, 1).permute(1, 2, 0).cpu().numpy()
     cmap = plt.get_cmap("jet")
     heat_rgb = cmap(heat)[..., :3]
-    overlay = 0.5 * img + 0.5 * heat_rgb
+    overlay = 0.2 * img + 0.8 * heat_rgb
     return overlay
 
 def make_masked_image(
