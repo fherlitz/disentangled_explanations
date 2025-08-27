@@ -10,12 +10,12 @@ from sklearn.cluster import KMeans
 from tqdm import tqdm
 from utils import set_seeds, get_imagenet_dataloader as get_dataloader
 
-# calculate sparsity, mean activation, and variance
-def calculate_sparsity(activations: np.ndarray, threshold: float = 0.1):
-    sparsity = (activations > threshold).mean(axis=0)
+# calculate activation rate, mean activation, and variance
+def calculate_stats(activations: np.ndarray, threshold: float = 0.1):
+    activation_rate = (activations > threshold).mean(axis=0) # activation rate
     mean_activation = activations.mean(axis=0)
     variance = activations.var(axis=0)
-    return sparsity, mean_activation, variance
+    return activation_rate, mean_activation, variance
 
 # Collect spatially averaged activations for max_samples images
 def analyze_block_activations(
@@ -57,6 +57,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--block", choices=["block_1", "block_2", "block_3", "block_4"], default="block_1")
     parser.add_argument("--n_clusters", type=int, default=3)
+    parser.add_argument( "--output_dir", type=str, default=None,)
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -71,7 +72,7 @@ def main():
 
     dataloader = get_dataloader(batch_size=32, num_workers=4)
 
-    block_stats: Dict[str, Dict[str, np.ndarray]] = {} # block name -> {sparsity, mean_activation, variance}
+    block_stats: Dict[str, Dict[str, np.ndarray]] = {} # block name -> {activation_rate, mean_activation, variance}
 
     # determine which blocks to process for activations
     blocks_for_collection = blocks_to_analyze.keys() if args.block == "auto" else [args.block]
@@ -79,9 +80,9 @@ def main():
     for name in blocks_for_collection:
         block = blocks_to_analyze[name]
         activations = analyze_block_activations(model, block, dataloader, device, max_samples=1000) 
-        sparsity, mean_act, var_act = calculate_sparsity(activations)
+        activation_rate, mean_act, var_act = calculate_stats(activations)
         block_stats[name] = {
-            "sparsity": sparsity,
+            "activation_rate": activation_rate,
             "mean_activation": mean_act,
             "variance": var_act,
         }
@@ -91,7 +92,7 @@ def main():
     # clustering
     props = np.stack(
         [
-            block_stats[selected_block]["sparsity"],
+            block_stats[selected_block]["activation_rate"],
             block_stats[selected_block]["mean_activation"],
             block_stats[selected_block]["variance"],
         ],
@@ -108,7 +109,7 @@ def main():
     # Save everything
 
     # Determine target output directory
-    out_dir = Path("outputs/neuron_stats") / f"{selected_block}_k{n_clusters}"
+    out_dir = Path(args.output_dir) if args.output_dir else Path("outputs/neuron_stats") / f"{selected_block}_k{n_clusters}"
     # Ensure directory exists
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -116,7 +117,7 @@ def main():
     for name, stats in block_stats.items():
         np.savez(
             out_dir / f"stats_{name}.npz",
-            sparsity=stats["sparsity"],
+            activation_rate=stats["activation_rate"],
             mean_activation=stats["mean_activation"],
             variance=stats["variance"],
         )
