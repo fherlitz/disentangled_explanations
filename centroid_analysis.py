@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--block", default="block_1", choices=["block_1", "block_2", "block_3", "block_4"])
-    parser.add_argument("--k", type=int, default=3)
+    parser.add_argument("--k", type=int, default=2)
     args = parser.parse_args()
 
     stats_dir = Path(f"outputs/neuron_stats/{args.block}_k{args.k}")
@@ -22,14 +22,14 @@ def main():
 
     df = pd.DataFrame({
         "mean":      stats["mean_activation"],
-        "sparsity":  stats["sparsity"],
+        "rate":  stats["activation_rate"],
         "variance":  stats["variance"],
         "cluster":   labels,
     })
 
     centroids = df.groupby("cluster").agg(
         mean=("mean", "mean"),
-        sparsity=("sparsity", "mean"),
+        rate=("rate", "mean"),
         variance=("variance", "mean"),
         n_neurons=("cluster", "size"),
     )
@@ -42,11 +42,12 @@ def main():
     fig = plt.figure(figsize=(7, 6))
     ax = fig.add_subplot(111, projection="3d")
     for c, grp in df.groupby("cluster"):
-        ax.scatter(grp["mean"], grp["sparsity"], grp["variance"], s=8, label=f"C{c}")
+        ax.scatter(grp["mean"], grp["rate"], grp["variance"], s=8, label=f"C{c}")
     ax.set_xlabel("Mean activation")
-    ax.set_ylabel("Sparsity")
+    ax.set_ylabel("Activation rate")
     ax.set_zlabel("Variance")
     ax.legend(title="Cluster")
+    ax.view_init(elev=30, azim=120)  # Fully rotate to view from the back (mirrored)
     plt.tight_layout()
     out3d = stats_dir / "cluster_scatter_3d.png"
     plt.savefig(out3d, dpi=300)
@@ -66,10 +67,10 @@ def main():
         
         # 3D scatter 
         fig_3d = px.scatter_3d(
-            df, x='mean', y='sparsity', z='variance', 
+            df, x='mean', y='rate', z='variance', 
             color='cluster', 
             title=f"{args.block}: neurons in 3-D stat space (k={args.k})",
-            labels={'mean': 'Mean activation', 'sparsity': 'Sparsity', 'variance': 'Variance'},
+            labels={'mean': 'Mean activation', 'rate': 'Activation rate', 'variance': 'Variance'},
             opacity=0.5, 
             size_max=10, 
             color_discrete_sequence=cluster_colors[:args.k],  
@@ -96,7 +97,7 @@ def main():
             saturated_color = f'#{int(r_sat*255):02x}{int(g_sat*255):02x}{int(b_sat*255):02x}'
             
             fig_3d.add_trace(go.Scatter3d(
-                x=[centroid['mean']], y=[centroid['sparsity']], z=[centroid['variance']],
+                x=[centroid['mean']], y=[centroid['rate']], z=[centroid['variance']],
                 mode='markers',
                 marker=dict(size=8, symbol='diamond', color=saturated_color),
                 name=f'Centroid C{c}',
@@ -131,7 +132,7 @@ def main():
         print("scikit-learn not installed, skipping t-SNE plot")
         return
 
-    X = df[["mean", "sparsity", "variance"]].values
+    X = df[["mean", "rate", "variance"]].values
     ts = TSNE(n_components=2, random_state=0, perplexity=30).fit_transform(X)
     plt.figure(figsize=(6, 5))
     for c in range(args.k):
