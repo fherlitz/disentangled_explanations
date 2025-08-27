@@ -73,7 +73,7 @@ def main():
     df = pd.DataFrame({
         "neuron_id": range(len(stats["mean_activation"])),
         "mean": stats["mean_activation"],
-        "sparsity": stats["sparsity"],
+        "rate": stats["activation_rate"],
         "variance": stats["variance"],
         "cluster": labels,
     })
@@ -94,16 +94,16 @@ def main():
     
     # Plot filtered neurons (red)
     filtered_df = df[df["is_filtered"]]
-    ax.scatter(filtered_df["mean"], filtered_df["sparsity"], filtered_df["variance"], 
+    ax.scatter(filtered_df["mean"], filtered_df["rate"], filtered_df["variance"], 
                c='red', s=20, alpha=0.4, label=f'Filtered ({len(filtered_df)})')
     
     # Plot kept neurons (blue)
     kept_df = df[~df["is_filtered"]]
-    ax.scatter(kept_df["mean"], kept_df["sparsity"], kept_df["variance"], 
+    ax.scatter(kept_df["mean"], kept_df["rate"], kept_df["variance"], 
                c='blue', s=8, alpha=0.7, label=f'Kept ({len(kept_df)})')
     
     ax.set_xlabel("Mean activation")
-    ax.set_ylabel("Sparsity")
+    ax.set_ylabel("Activation rate")
     ax.set_zlabel("Variance")
     ax.legend()
     plt.tight_layout()
@@ -121,9 +121,9 @@ def main():
         
         # Create interactive 3D scatter
         fig_3d = px.scatter_3d(
-            df, x='mean', y='sparsity', z='variance', 
+            df, x='mean', y='rate', z='variance', 
             color='neuron_type',
-            labels={'mean': 'Mean activation', 'sparsity': 'Sparsity', 'variance': 'Variance'},
+            labels={'mean': 'Mean activation', 'rate': 'Activation rate', 'variance': 'Variance'},
             opacity=0.7,
             size_max=15,
             color_discrete_map={'Filtered': 'red', 'Kept': 'blue'},
@@ -134,7 +134,7 @@ def main():
         fig_3d.update_traces(
             hovertemplate="<b>Neuron %{customdata}</b><br>" +
                          "Mean: %{x:.3f}<br>" +
-                         "Sparsity: %{y:.3f}<br>" +
+                         "Rate: %{y:.3f}<br>" +
                          "Variance: %{z:.3f}<br>" +
                          "Type: %{marker.color}<extra></extra>",
             customdata=df["neuron_id"]
@@ -162,7 +162,7 @@ def main():
     try:
         from sklearn.manifold import TSNE
         
-        X = df[["mean", "sparsity", "variance"]].values
+        X = df[["mean", "rate", "variance"]].values
         ts = TSNE(n_components=2, random_state=0, perplexity=30).fit_transform(X)
         
         plt.figure(figsize=(10, 8))
