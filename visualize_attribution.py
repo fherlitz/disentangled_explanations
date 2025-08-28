@@ -99,7 +99,7 @@ def make_masked_image_pixel(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--img_idx", type=int, default=1500) # -1 for random image visualization
+    parser.add_argument("--img_idx", type=int, default=48547) # -1 for random image visualization
     parser.add_argument("--cluster_idx", type=int, default=0)
     parser.add_argument("--block", choices=["block_1", "block_2", "block_3", "block_4"], default="block_1")
     parser.add_argument("--k", type=int, default=3)
@@ -164,14 +164,21 @@ def main():
     class_name = _idx2name.get(label, str(label))
     fig.suptitle(f"Class: {class_name} (label {label})", fontsize=14)
     summary_lines = []
+    # compute top predictions once
+    with torch.no_grad():
+        base_output = base_model(img_t.unsqueeze(0))
+        base_pred = base_output.argmax(1).item()
+        filt_output = filt_model(img_t.unsqueeze(0))
+        filt_pred = filt_output.argmax(1).item()
+
     for row, (name, ctor) in enumerate(methods.items()):
         # baseline
         baser = ctor(base_model)
-        attr_base = baser.attribute(img_t.unsqueeze(0), target=label)
+        attr_base = baser.attribute(img_t.unsqueeze(0), target=base_pred)
 
         # filtered
         filtr = ctor(filt_model)
-        attr_filt = filtr.attribute(img_t.unsqueeze(0), target=label)
+        attr_filt = filtr.attribute(img_t.unsqueeze(0), target=filt_pred)
 
         # overlays
         overlay_base = attribution_overlay(img_t, attr_base.squeeze())
@@ -198,18 +205,14 @@ def main():
         # faithfulness score
         with torch.no_grad():
             # Baseline predictions
-            base_output = base_model(img_t.unsqueeze(0))
-            base_pred = base_output.argmax(1).item()
-            base_conf = torch.softmax(base_output, dim=1)[0, label].item()
-            prob_after_mask_base = torch.softmax(base_model(masked_patch_base.unsqueeze(0)), dim=1)[0, label].item()
+            base_conf = torch.softmax(base_output, dim=1)[0, base_pred].item()
+            prob_after_mask_base = torch.softmax(base_model(masked_patch_base.unsqueeze(0)), dim=1)[0, base_pred].item()
             abs_drop_base = base_conf - prob_after_mask_base
             rel_drop_base = abs_drop_base / base_conf if base_conf > 0 else 0.0
 
             # Filtered predictions
-            filt_output = filt_model(img_t.unsqueeze(0))
-            filt_pred = filt_output.argmax(1).item()
-            filt_conf = torch.softmax(filt_output, dim=1)[0, label].item()
-            prob_after_mask_filt = torch.softmax(filt_model(masked_patch_filt.unsqueeze(0)), dim=1)[0, label].item()
+            filt_conf = torch.softmax(filt_output, dim=1)[0, filt_pred].item()
+            prob_after_mask_filt = torch.softmax(filt_model(masked_patch_filt.unsqueeze(0)), dim=1)[0, filt_pred].item()
             abs_drop_filt = filt_conf - prob_after_mask_filt
             rel_drop_filt = abs_drop_filt / filt_conf if filt_conf > 0 else 0.0
 

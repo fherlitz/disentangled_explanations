@@ -79,8 +79,8 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--cluster_idx", type=int, default=0)
-    parser.add_argument("--class_start", type=int, default=600, help="Starting class index (inclusive)")
-    parser.add_argument("--class_end", type=int, default=800, help="Ending class index (exclusive)")
+    parser.add_argument("--class_start", type=int, default=800, help="Starting class index (inclusive)")
+    parser.add_argument("--class_end", type=int, default=1000, help="Ending class index (exclusive)")
     parser.add_argument("--images_per_class", type=int, default=50, help="50 is full class (max)")
     parser.add_argument("--stats_dir", type=str, default="outputs/neuron_stats/block_1_k3")
     args = parser.parse_args()
@@ -181,6 +181,10 @@ def main():
             img_cpu = images_flat[flat_pos]  # cached CPU tensor
             tgt_label = labels_flat[flat_pos]
             img = img_cpu.to(device, non_blocking=True)
+            # Top predicted class for both models
+            with torch.no_grad():
+                top_pred_filtered = filt_model(img.unsqueeze(0)).argmax(1).item()
+                top_pred_base = base_model(img.unsqueeze(0)).argmax(1).item()
 
             for method_name in ["ig", "saliency"]:
                 # Filtered attribution
@@ -189,7 +193,7 @@ def main():
                     attr_filtered = np.load(filt_attr_path)
                 else:
                     attr_filtered_tensor = attr_methods_filtered[method_name].attribute(
-                        img.unsqueeze(0), target=int(tgt_label)
+                        img.unsqueeze(0), target=int(top_pred_filtered)
                     )
                     attr_filtered = attr_filtered_tensor.squeeze().cpu().numpy()
                     np.save(filt_attr_path, attr_filtered)
@@ -199,7 +203,7 @@ def main():
                 )
                 faithfulness_scores_filtered[method_name].append(
                     probability_drop_pixel_wise(
-                        filt_model, img, attr_filtered, drop_fraction=0.1, true_label=tgt_label
+                        filt_model, img, attr_filtered, drop_fraction=0.1
                     )
                 )
 
@@ -209,13 +213,13 @@ def main():
                     attr_base = np.load(base_attr_path)
                 else:
                     attr_base_tensor = attr_methods_base[method_name].attribute(
-                        img.unsqueeze(0), target=int(tgt_label)
+                        img.unsqueeze(0), target=int(top_pred_base)
                     )
                     attr_base = attr_base_tensor.squeeze().cpu().numpy()
                     np.save(base_attr_path, attr_base)
                 baseline_faithfulness_scores[method_name].append(
                     probability_drop_pixel_wise(
-                        base_model, img, attr_base, drop_fraction=0.1, true_label=tgt_label
+                        base_model, img, attr_base, drop_fraction=0.1
                     )
                 )
                 baseline_sparsity_scores[method_name].append(

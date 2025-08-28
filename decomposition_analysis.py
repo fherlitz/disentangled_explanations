@@ -96,7 +96,10 @@ class ClusterAttributionExtractor:
                 raise ValueError(f"Unknown method: {method}")
             
             # Get attribution for this cluster
-            attr = attr_method.attribute(img.unsqueeze(0), target=target_class)
+            # Use top predicted class of the cluster-specific model
+            with torch.no_grad():
+                top_pred = model(img.unsqueeze(0)).argmax(1).item()
+            attr = attr_method.attribute(img.unsqueeze(0), target=int(top_pred))
             attributions[cluster_id] = attr.squeeze().cpu().numpy()
             
         return attributions
@@ -132,7 +135,9 @@ class ClusterAttributionExtractor:
         elif method.lower() == "saliency":
             attr_method = Saliency(model)
         
-        attr = attr_method.attribute(img.unsqueeze(0), target=target_class)
+        with torch.no_grad():
+            top_pred = model(img.unsqueeze(0)).argmax(1).item()
+        attr = attr_method.attribute(img.unsqueeze(0), target=int(top_pred))
         return attr.squeeze().cpu().numpy()
 
 # ============================================================================
@@ -336,7 +341,7 @@ def main():
     print(f"Loaded {len(idx2name)} ImageNet class names")
     
     # Create output directory
-    save_dir = Path("outputs/decomposition_analysis")
+    save_dir = Path("outputs/cluster_analysis")
     save_dir.mkdir(parents=True, exist_ok=True)
     
     # Analyze multiple images

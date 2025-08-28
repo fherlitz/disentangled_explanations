@@ -129,10 +129,10 @@ def main():
 
             if args.metric == "pixel":
                 sparsity_val = compute_sparsity_pixel_wise(attr, mass_fraction=0.9)
-                faith_val = probability_drop_pixel_wise(model, img, attr, drop_fraction=0.1, true_label=labels_flat[idx])
+                faith_val = probability_drop_pixel_wise(model, img, attr, drop_fraction=0.1)
             else:
                 sparsity_val = compute_sparsity_patch_wise(attr, mass_fraction=0.9)
-                faith_val = probability_drop_patch_wise(model, img, attr, drop_fraction=0.1, true_label=labels_flat[idx])
+                faith_val = probability_drop_patch_wise(model, img, attr, drop_fraction=0.1)
             sparsity_scores[method].append(sparsity_val)
             faithfulness_scores[method].append(faith_val)
 

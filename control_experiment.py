@@ -136,8 +136,11 @@ def main():
     
     for idx, (img_cpu, tgt_label) in tqdm(list(enumerate(zip(images_flat, labels_flat))), desc="Attributions"):
         img = img_cpu.to(device, non_blocking=True)
+        # use top predicted class from filtered model as attribution target
+        with torch.no_grad():
+            pred_class = filt_model(img.unsqueeze(0)).argmax(1).item()
         for name, method in attr_methods.items():
-            attr = method.attribute(img.unsqueeze(0), target=int(tgt_label))
+            attr = method.attribute(img.unsqueeze(0), target=int(pred_class))
             np.save(out_attr_dir / f"{name}_{idx}.npy", attr.squeeze().cpu().numpy())
 
     # Metric computation
@@ -160,7 +163,7 @@ def main():
             attr = np.load(out_attr_dir / f"{method}_{idx}.npy")
             sparsity_scores[method].append(sparsity_fn(attr))
             faithfulness_scores[method].append(
-                faith_fn(filt_model, img, attr, drop_fraction=0.1, true_label=labels_flat[idx])
+                faith_fn(filt_model, img, attr, drop_fraction=0.1)
             )
 
     # Aggregate results
